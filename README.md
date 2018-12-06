@@ -1,5 +1,5 @@
 # Learning to Sample
-A learned sampling approach for point clouds - code will be available soon.
+A learned sampling approach for point clouds - code will be available here soon.
 
 Please see [arXiv tech report](https://arxiv.org/abs/1812.01659)
   
