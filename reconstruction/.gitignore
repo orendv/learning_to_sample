@@ -1,0 +1,12 @@
+.idea
+.project
+.ipynb_checkpoints
+.DS_Store
+.pydevproject
+*.pyc
+*.nfs*
+data/*
+results/*
+external/structural_losses/*.o
+external/structural_losses/*.so
+utils/*.so
