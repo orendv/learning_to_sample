@@ -20,7 +20,7 @@ If you find our work useful in your research, please consider citing:
 	}
 
 ## Installation and usage
-This project contains two sub-directories, each is a stand alone-project with it's own instructions.
+This project contains two sub-directories, each is a stand-alone project with it's own instructions.
 Please see `classification/README.md` and `reconstruction/README.md`.
 
 ## License
