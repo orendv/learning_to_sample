@@ -15,7 +15,7 @@ sudo apt-get update
 sudo apt-get install wget
 ```
 
-Compile the structural losses (only needed for the matching step in inference time, not for the training), implemented by [Fan et al.](https://github.com/fanhqme/PointSetGeneration):
+Compile the structural losses (only needed for the matching step in inference time), implemented by [Fan et al.](https://github.com/fanhqme/PointSetGeneration):
 ```
 cd classification/structural_losses/
 ```
