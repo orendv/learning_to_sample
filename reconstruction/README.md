@@ -30,7 +30,7 @@ If needed, use a text editor and modify the `tf_sampling_compile.sh` to point to
     TF_INC=$(python -c 'import tensorflow as tf; print(tf.sysconfig.get_include())')
     TF_LIB=$(python -c 'import tensorflow as tf; print(tf.sysconfig.get_lib())') 
 
-Then, add the flags `-I$TF_INC/external/nsync/public -L$TF_LIB -ltensorflow_framework` to the `g++` commands. The use:
+Then, add the flags `-I$TF_INC/external/nsync/public -L$TF_LIB -ltensorflow_framework` to the `g++` commands. Then use:
 
     sh tf_sampling_compile.sh
 
