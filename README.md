@@ -1,5 +1,5 @@
 # Learning to Sample
-Created by Oren Dovrat, Itai Lang and Shai Avidan from Tel-Aviv University.
+Created by Oren Dovrat, Itai Lang and [Shai Avidan](http://www.eng.tau.ac.il/~avidan/) from Tel-Aviv University.
 
 ![teaser](https://github.com/orendv/learning_to_sample/blob/master/doc/teaser.png)
 
