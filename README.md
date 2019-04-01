@@ -1,7 +1,7 @@
 # Learning to Sample
 Created by Oren Dovrat, Itai Lang and Shai Avidan from Tel-Aviv University.
 
-![teaser](https://github.com/orendv/learning_to_sample/blob/master/doc/teaser.pdf)
+![teaser](https://github.com/orendv/learning_to_sample/blob/master/doc/teaser.png)
 
 ## Introduction
 We propose a learned sampling approach for point clouds. Please see our [arXiv tech report](https://arxiv.org/abs/1812.01659).
