@@ -189,7 +189,7 @@ def eval_one_epoch(sess, ops):
                 os.makedirs(OUT_DATA_PATH + '/sampled/')
             file_name = os.path.split(TEST_FILES[fn])
             data_prep_util.save_h5(OUT_DATA_PATH + '/generated/' + file_name[1], out_data_generated, current_label_orig, data_dtype, label_dtype)
-            data_prep_util.save_h5(OUT_DATA_PATH + '/sampled/' + file_name[1], out_data_sampled, current_label_orig, data_dtype, abel_dtype)
+            data_prep_util.save_h5(OUT_DATA_PATH + '/sampled/' + file_name[1], out_data_sampled, current_label_orig, data_dtype, label_dtype)
 
     log_string('eval mean loss: %f' % (loss_sum / float(total_seen)))
     log_string('eval accuracy: %f' % (total_correct / float(total_seen)))
