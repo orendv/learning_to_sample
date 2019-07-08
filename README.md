@@ -17,8 +17,9 @@ If you find our work useful in your research, please consider citing:
 	@article{dovrat2018learning_to_sample,
 	  title={Learning to Sample},
 	  author={Dovrat, Oren and Lang, Itai and Avidan, Shai},
-	  journal={arXiv preprint arXiv:1812.01659},
-	  year={2018}
+	  journal={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+	  pages = {2760--2769},
+	  year={2019}
 	}
 
 ## Installation and usage
