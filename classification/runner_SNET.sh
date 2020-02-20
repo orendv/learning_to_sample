@@ -9,6 +9,6 @@ python train_SNET.py --classifier_model_path log/baseline/PointNet1024/model.ckp
 wait
 
 #infer S-NET and evaluate the PointNet classifier over S-NET's sampled points:
-python evaluate_SNET.py --sampler_model_path log/SNET64/model.ckpt --dump_dir log/SNET64/eval
+python evaluate_SNET.py --sampler_model_path log/SNET64/model.ckpt --num_out_points 64 --dump_dir log/SNET64/eval
 
 #see results in log/SNET64/eval/log_evaluate.txt

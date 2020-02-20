@@ -23,6 +23,7 @@ parser.add_argument('--batch_size', type=int, default=32, help='Batch Size durin
 parser.add_argument('--bottleneck_size', type=int, default=128, help='bottleneck size [default: 128]')
 parser.add_argument('--match_output', type=int, default=1, help='Matching flag: 1 - match, 0 - do not match [default:1]')
 parser.add_argument('--save_points', type=int, default=0, help='Output points saving flag: 1 - save, 0 - do not save [default:0]')
+parser.add_argument('--save_retrieval_vectors', type=int, default=0, help='Retrieval vectors saving flag: 1 - save, 0 - do not save [default: 0]')
 parser.add_argument('--dump_dir', default='dump', help='dump folder path [default:dump]')
 parser.add_argument('--num_out_points', type=int, default=64, help='Number of output points [2,4,...,1024] [default: 64]')
 FLAGS = parser.parse_args()
@@ -36,6 +37,7 @@ BATCH_SIZE = FLAGS.batch_size
 BOTTLENECK_SIZE = FLAGS.bottleneck_size
 MATCH_OUTPUT = FLAGS.match_output
 SAVE_POINTS = FLAGS.save_points
+SAVE_RETRIEVAL_VECTORS = FLAGS.save_retrieval_vectors
 DUMP_DIR = FLAGS.dump_dir
 NUM_OUT_POINTS = FLAGS.num_out_points
 
@@ -53,6 +55,8 @@ SHAPE_NAMES = [line.rstrip() for line in \
                open(os.path.join(BASE_DIR, 'data/modelnet40_ply_hdf5_2048/shape_names.txt'))]
 
 HOSTNAME = socket.gethostname()
+
+RETRIEVAL_VEC_SIZE = 256
 
 # ModelNet40 official train/test split
 TRAIN_FILES = provider.getDataFiles( \
@@ -103,7 +107,8 @@ def evaluate():
            'loss': loss,
            'generated_points': generated_points,
            'idx': idx,
-           'outcloud': outcloud
+           'outcloud': outcloud,
+           'retrieval_vectors': end_points['retrieval_vectors']
            }
 
     eval_one_epoch(sess, ops)
@@ -118,6 +123,8 @@ def eval_one_epoch(sess, ops):
     total_seen_class = [0 for _ in range(NUM_CLASSES)]
     total_correct_class = [0 for _ in range(NUM_CLASSES)]
     fout = open(os.path.join(DUMP_DIR, 'pred_label.txt'), 'w')
+    out_data_retrieval = [None] * len(TEST_FILES)
+    out_data_label = [None] * len(TEST_FILES)
     for fn in range(len(TEST_FILES)):
         log_string('---- file number ' + str(fn + 1) + ' out of ' + str(len(TEST_FILES)) + ' files ----')
         current_data, current_label = provider.loadDataFile(TEST_FILES[fn])
@@ -132,6 +139,7 @@ def eval_one_epoch(sess, ops):
 
         out_data_generated = np.zeros((current_data.shape[0], NUM_OUT_POINTS, current_data.shape[2]))
         out_data_sampled = np.zeros((current_data.shape[0], NUM_OUT_POINTS, current_data.shape[2]))
+        out_data_retrieval_vectors = np.zeros((current_data.shape[0], RETRIEVAL_VEC_SIZE))
 
         for batch_idx in range(num_batches):
             print str(batch_idx) + '/' + str(num_batches - 1)
@@ -162,6 +170,11 @@ def eval_one_epoch(sess, ops):
             out_data_generated[start_idx:end_idx, :, :] = generated_points
             out_data_sampled[start_idx:end_idx, :, :] = outcloud
 
+            # shape descriptor for retrieval
+            feed_dict = {ops['outcloud']: outcloud, ops['is_training_pl']: is_training}
+            retrieval_vectors = sess.run(ops['retrieval_vectors'], feed_dict=feed_dict)
+            out_data_retrieval_vectors[start_idx:end_idx, :] = retrieval_vectors
+
             batch_pred_sum += pred_val
             batch_pred_val = np.argmax(pred_val, 1)
             for el_idx in range(cur_batch_size):
@@ -182,14 +195,25 @@ def eval_one_epoch(sess, ops):
                 total_correct_class[l] += (pred_val[i - start_idx] == l)
                 fout.write('%d, %d\n' % (pred_val[i - start_idx], l))
 
+        out_data_retrieval[fn] = out_data_retrieval_vectors
+        out_data_label[fn] = current_label_orig
+
+        file_name = os.path.split(TEST_FILES[fn])
         if SAVE_POINTS:
             if not os.path.exists(OUT_DATA_PATH + '/generated/'):
                 os.makedirs(OUT_DATA_PATH + '/generated/')
             if not os.path.exists(OUT_DATA_PATH + '/sampled/'):
                 os.makedirs(OUT_DATA_PATH + '/sampled/')
-            file_name = os.path.split(TEST_FILES[fn])
             data_prep_util.save_h5(OUT_DATA_PATH + '/generated/' + file_name[1], out_data_generated, current_label_orig, data_dtype, label_dtype)
             data_prep_util.save_h5(OUT_DATA_PATH + '/sampled/' + file_name[1], out_data_sampled, current_label_orig, data_dtype, label_dtype)
+
+    if SAVE_RETRIEVAL_VECTORS:
+        out_data_retrieval_one_file = np.vstack(out_data_retrieval)
+        out_data_label_one_file = np.vstack(out_data_label)
+        if not os.path.exists(OUT_DATA_PATH + '/retrieval/'):
+            os.makedirs(OUT_DATA_PATH + '/retrieval/')
+        data_prep_util.save_h5(OUT_DATA_PATH + '/retrieval/' + 'retrieval_vectors' + '_' + str(NUM_OUT_POINTS) + '.h5',
+                               out_data_retrieval_one_file, out_data_label_one_file, data_dtype, label_dtype)
 
     log_string('eval mean loss: %f' % (loss_sum / float(total_seen)))
     log_string('eval accuracy: %f' % (total_correct / float(total_seen)))

@@ -34,7 +34,6 @@ or:
     sh runner_progressiveNet.sh
     
 #### PointNet classifier
-
 To train a PointNet model to classify point clouds:
 
     python train_classifier.py --log_dir log/baseline/PointNet1024
@@ -59,7 +58,7 @@ To train ProgressiveNet, using an existing classifier (PointNet vanilla in this 
 
     python train_progressiveNet.py --classifier_model pointnet_cls_basic --classifier_model_path log/baseline/PointNetVanilla1024/model.ckpt --log_dir log/ProgressiveNet
 
-Evlautaion of ProgressiveNet is a two-step process. 
+Evaluation of ProgressiveNet is a two-step process. 
 First infer ProgressiveNet and save the ordered point clouds to .h5 files:
 
     python infer_progressiveNet.py --sampler_model_path log/ProgressiveNet/model.ckpt
@@ -67,6 +66,13 @@ First infer ProgressiveNet and save the ordered point clouds to .h5 files:
 Second, evaluate the PointNet (vanilla) classifier using ProgressiveNet's sampled points:
 
     python evaluate_from_files.py --classifier_model pointnet_cls_basic --classifier_model_path log/baseline/PointNetVanilla1024/model.ckpt --data_path log/ProgressiveNet/sampled --dump_dir log/ProgressiveNet/eval
+
+#### Retrieval
+To run a retrieval experiment, please use the following script:
+
+    sh runner_retrieval.sh 
+
+In this script, data for retrieval is produced during the inference phase of S-NET. Then, this data is analyzed and corresponding results are saved. 
 
 ### Acknowledgment
 Our code builds upon the code provided by <a href="https://github.com/charlesq34/pointnet" target="_blank">Qi et al.</a> We would like to thank the authors for sharing their code.
