@@ -144,7 +144,7 @@ if flags.visualize_results:
     plot_3d_point_cloud(
         pc_data_test.point_clouds[i][:, 0], pc_data_test.point_clouds[i][:, 1], pc_data_test.point_clouds[i][:, 2],
         in_u_sphere=True,
-        title="Complete input point cloud",
+        title="Complete input point cloud"
     )
     if flags.use_fps:
         plot_3d_point_cloud(

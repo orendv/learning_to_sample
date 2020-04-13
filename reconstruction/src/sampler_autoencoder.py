@@ -172,6 +172,51 @@ class SamplerAutoEncoder(Neural_Net):
             z = np.expand_dims(z, 0)
         return self.sess.run((self.x_reconstr), {self.z: z})
 
+    def get_loss_ae(self, X, GT=None, S=None):
+        if S is not None:
+            feed_dict = {self.s: S}
+        else:
+            feed_dict = {self.x: X}
+
+        if GT is not None:
+            feed_dict[self.gt] = GT
+
+        return self.sess.run(self.loss_ae, feed_dict=feed_dict)
+
+    def get_loss_ae_per_pc(self, feed_data, samp_data, orig_data=None):
+        feed_data_shape = feed_data.shape
+        assert len(feed_data_shape) == 3, "The feed data should have 3 dimensions"
+
+        if orig_data is not None:
+            assert (
+                feed_data_shape == orig_data.shape
+            ), "The feed data and original data should have the same size"
+        else:
+            orig_data = feed_data
+
+        n_examples = feed_data_shape[0]
+        ae_loss = np.zeros(n_examples)
+        for i in range(0, n_examples, 1):
+            ae_loss[i] = self.get_loss_ae(
+                feed_data[i : i + 1], orig_data[i : i + 1], samp_data[i : i + 1]
+            )
+
+        return ae_loss
+
+    def get_reconstructions_from_sampled(self, pclouds, batch_size=50):
+        """ Get the reconstructions for a set of sampled point clouds.
+        Args:
+            pclouds (N, K, 3) numpy array of N point clouds with K points each.
+            batch_size size of point clouds batch
+        """
+        reconstructions = []
+        idx = np.arange(len(pclouds))
+        for b in iterate_in_chunks(idx, batch_size):
+            feed_dict = {self.s: pclouds[b]}
+            rcon = self.sess.run(self.x_reconstr, feed_dict=feed_dict)
+            reconstructions.append(rcon)
+        return np.vstack(reconstructions)
+
     def train(self, train_data, configuration, log_file=None, held_out_data=None):
         c = configuration
         stats = []

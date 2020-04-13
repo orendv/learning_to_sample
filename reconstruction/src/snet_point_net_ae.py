@@ -28,7 +28,7 @@ except:
     print('External Losses (Chamfer-EMD) cannot be loaded. Please install them first.')
     
 
-class SampleNetPointNetAutoEncoder(SamplerAutoEncoder):
+class SNetPointNetAutoEncoder(SamplerAutoEncoder):
     '''
     An Auto-Encoder for point-clouds.
     '''
