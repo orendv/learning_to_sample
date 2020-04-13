@@ -19,35 +19,27 @@ if parent_dir not in sys.path:
 from reconstruction.src.autoencoder import Configuration as Conf
 from reconstruction.src.point_net_ae import PointNetAutoEncoder
 
-from reconstruction.src.in_out import (
-    snc_category_to_synth_id,
-    create_dir,
-    load_and_split_all_point_clouds_under_folder,
-)
+from reconstruction.src.in_out import snc_category_to_synth_id, create_dir, load_and_split_all_point_clouds_under_folder
 
 from reconstruction.src.tf_utils import reset_tf_graph
 from reconstruction.src.general_utils import plot_3d_point_cloud
 
 # command line arguments
-# fmt: off
 parser = argparse.ArgumentParser()
-parser.add_argument('--use_fps', type=int, default=1, help='1: FPS sampling before autoencoder, 0: do not sample [default: 0]')
+parser.add_argument('--use_fps', type=int, default=0, help='1: FPS sampling before autoencoder, 0: do not sample [default: 0]')
 parser.add_argument('--n_sample_points', type=int, default=2048, help='Number of sample points of the input [default: 2048]')
 parser.add_argument('--object_class', type=str, default='multi', help='Single class name (for example: chair) or multi [default: multi]')
 parser.add_argument('--train_folder', type=str, default='log/autoencoder', help='Folder for saving data form the training [default: log/autoencoder]')
 parser.add_argument('--restore_epoch', type=int, default=500, help='Restore epoch of a saved autoencoder model [default: 500]')
 parser.add_argument('--visualize_results', action='store_true', help='Visualize results [default: False]')
 flags = parser.parse_args()
-# fmt: on
 
-print(("Evaluation flags:", flags))
+print("Evaluation flags:", flags)
 
 # define basic parameters
 project_dir = osp.dirname(osp.dirname(osp.abspath(__file__)))
-top_in_dir = osp.join(
-    project_dir, "data", "shape_net_core_uniform_samples_2048"
-)  # top-dir of where point-clouds are stored.
-top_out_dir = osp.join(project_dir)  # use to save Neural-Net check-points etc.
+top_in_dir = osp.join(project_dir, "data", "shape_net_core_uniform_samples_2048")  # top-dir of where point-clouds are stored.
+top_out_dir = project_dir                                                          # use to save Neural-Net check-points etc.
 
 if flags.object_class == "multi":
     class_name = ["chair", "table", "car", "airplane"]
@@ -154,8 +146,15 @@ if flags.visualize_results:
         in_u_sphere=True,
         title="Complete input point cloud",
     )
+    if flags.use_fps:
+        plot_3d_point_cloud(
+            sampled_pc[i][:, 0], sampled_pc[i][:, 1], sampled_pc[i][:, 2],
+            in_u_sphere=True,
+            title="FPS sampled points"
+        )
+    reconstruction_title = "Reconstruction from FPS points" if flags.use_fps else "Reconstruction from complete input"
     plot_3d_point_cloud(
         reconstructions[i][:, 0], reconstructions[i][:, 1], reconstructions[i][:, 2],
         in_u_sphere=True,
-        title="Reconstruction from complete input"
+        title=reconstruction_title
     )
