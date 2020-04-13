@@ -29,7 +29,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--use_fps', type=bool, default=False, help='FPS sampling before autoencoder [default: False]')
 parser.add_argument('--n_sample_points', type=int, default=2048, help='Number of sample points of the input [default: 2048]')
 parser.add_argument('--object_class', type=str, default='multi', help='Single class name (for example: chair) or multi [default: multi]')
-parser.add_argument('--train_folder', type=str, default='autoencoder', help='Folder for saving data form the training [default: autoencoder]')
+parser.add_argument('--train_folder', type=str, default='log/autoencoder', help='Folder for saving data form the training [default: log/autoencoder]')
 flags = parser.parse_args()
 
 print('Train flags:', flags)

@@ -42,8 +42,8 @@ class PointNetAutoEncoder(AutoEncoder):
 
         with tf.variable_scope(name):
             if c.exists_and_is_not_none('use_fps') and c.use_fps:
-                idx = farthest_point_sample(c.n_sample_points, self.x)  # (batch_size, n_sample_points)
-                self.s = gather_point(self.x, idx)  # (batch_size, n_sample_points, 3)
+                self.idx = farthest_point_sample(c.n_sample_points, self.x)  # (batch_size, n_sample_points)
+                self.s = gather_point(self.x, self.idx)  # (batch_size, n_sample_points, 3)
             else:
                 self.s = self.x[:, :c.n_sample_points, :]  # (batch_size, n_sample_points, 3)
 

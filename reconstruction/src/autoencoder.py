@@ -97,7 +97,10 @@ class AutoEncoder(Neural_Net):
         in_shape = [None] + self.n_input
         out_shape = [None] + self.n_output
 
-        samp_out_shape = [None] + configuration.n_samp_out
+        if configuration.exists_and_is_not_none('n_samp_out'):
+            samp_out_shape = [None] + configuration.n_samp_out
+        else:
+            samp_out_shape = [None] + [2048, 3]
 
         with tf.variable_scope(name):
             self.x = tf.placeholder(tf.float32, in_shape)
@@ -151,6 +154,43 @@ class AutoEncoder(Neural_Net):
 
     def get_nn_distance(self, GT, S_OUT):
         return self.sess.run(self.nn_distance, feed_dict={self.s_out: S_OUT, self.gt: GT})
+
+    def get_loss(self, X, GT=None):
+        if GT is None:
+            feed_dict = {self.x: X}
+        else:
+            feed_dict = {self.x: X, self.gt: GT}
+
+        return self.sess.run(self.loss, feed_dict=feed_dict)
+
+    def get_loss_per_pc(self, feed_data, orig_data=None):
+        feed_data_shape = feed_data.shape
+        assert len(feed_data_shape) == 3, "The feed data should have 3 dimensions"
+
+        if orig_data is not None:
+            assert (
+                feed_data_shape == orig_data.shape
+            ), "The feed data and original data should have the same size"
+        else:
+            orig_data = feed_data
+
+        n_examples = feed_data_shape[0]
+        ae_loss = np.zeros(n_examples)
+        for i in range(0, n_examples, 1):
+            ae_loss[i] = self.get_loss(feed_data[i : i + 1], orig_data[i : i + 1])
+
+        return ae_loss
+
+    def get_sample(self, X):
+        """Sample fps points from input data."""
+        assert (
+            self.configuration.exists_and_is_not_none("use_fps")
+            and self.configuration.use_fps
+        ), "For getting FPS sampled point clouds, use_fps flag should be on"
+
+        fps_points, fps_idx = self.sess.run((self.s, self.idx), feed_dict={self.x: X})
+
+        return fps_points, fps_idx
 
     def transform(self, X):
         '''Transform data by mapping it into the latent space.'''
@@ -273,7 +313,49 @@ class AutoEncoder(Neural_Net):
 
         embedding = np.vstack(embedding)
         return feed, embedding, ids
-        
+
+    def get_reconstructions(self, pclouds, batch_size=50):
+        """ Convenience wrapper of self.reconstruct to get the FPS sampled points for a set of input point clouds.
+        Args:
+            pclouds (N, K, 3) numpy array of N point clouds with K points each.
+        """
+
+        reconstructions = []
+        idx = np.arange(len(pclouds))
+        for b in iterate_in_chunks(idx, batch_size):
+            rcon, _ = self.reconstruct(pclouds[b], compute_loss=False)
+            reconstructions.append(rcon)
+        return np.vstack(reconstructions)
+
+    def get_reconstructions_from_sampled(self, pclouds, batch_size=50):
+        """ Get the reconstructions for a set of sampled point clouds.
+        Args:
+            pclouds (N, K, 3) numpy array of N point clouds with K points each.
+            batch_size size of point clouds batch
+        """
+        reconstructions = []
+        idx = np.arange(len(pclouds))
+        for b in iterate_in_chunks(idx, batch_size):
+            feed_dict = {self.s: pclouds[b]}
+            rcon = self.sess.run(self.x_reconstr, feed_dict=feed_dict)
+            reconstructions.append(rcon)
+        return np.vstack(reconstructions)
+
+    def get_samples(self, pclouds, batch_size=50):
+        """ Convenience wrapper of self.get_sample to get the FPS sampled points for a set of input point clouds.
+        Args:
+            pclouds (N, K, 3) numpy array of N point clouds with K points each.
+        """
+
+        fps_points = []
+        fps_idx = []
+        idx = np.arange(len(pclouds))
+        for b in iterate_in_chunks(idx, batch_size):
+            curr_fps_points, curr_fps_idx = self.get_sample(pclouds[b])
+            fps_points.append(curr_fps_points)
+            fps_idx.append(curr_fps_idx)
+        return np.vstack(fps_points), np.vstack(fps_idx)
+
     def get_latent_codes(self, pclouds, batch_size=100):
         ''' Convenience wrapper of self.transform to get the latent (bottle-neck) codes for a set of input point 
         clouds.
