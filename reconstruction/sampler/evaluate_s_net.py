@@ -17,7 +17,7 @@ if parent_dir not in sys.path:
 
 # import modules
 from reconstruction.src.autoencoder import Configuration as Conf
-from reconstruction.src.snet_point_net_ae import SNetPointNetAutoEncoder
+from reconstruction.src.s_net_point_net_ae import SNetPointNetAutoEncoder
 
 from reconstruction.src.in_out import snc_category_to_synth_id, create_dir, load_and_split_all_point_clouds_under_folder
 
