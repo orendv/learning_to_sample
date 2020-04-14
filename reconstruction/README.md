@@ -58,11 +58,17 @@ To train an Autoencoder model, use:
 
     python autoencoder/train_ae.py --train_folder log/autoencoder
 
-To evaluate an Autoencoder model, use:
+To evaluate the Autoencoder model, use:
 
     python autoencoder/evaluate_ae.py --train_folder log/autoencoder
 
-This evaluation script saves the reconstructed point clouds of the test set, and the reconstruction error per point cloud (Chamfer distance between the input and reconstruction).  The results are saved to the `train_folder`.
+This evaluation script saves the reconstructed point clouds from complete input point clouds of the test set, and the reconstruction error per point cloud (Chamfer distance between the input and reconstruction). The results are saved to the `train_folder`.
+
+To evaluate reconstruction with FPS sampled points (with sample size 64 in this example), use:  
+
+    python autoencoder/evaluate_ae.py --train_folder log/autoencoder --use_fps 1 --n_sample_points 64
+
+This evaluation script saves the sampled point clouds, sample indices and reconstructed point clouds of the test set, and the reconstruction error per point cloud (Chamfer distance between the input and reconstruction). It also computes the normalized reconstruction error, as explained in the paper. The results are saved to the `train_folder`.
 
 #### S-NET
 To train S-NET using an existing Autoencoder model as the task network (provided in ae_folder flag), use:
@@ -73,16 +79,18 @@ To evaluate reconstruction with S-NET's sampled points (with sample size 64 in t
 
     python sampler/evaluate_s_net.py --train_folder log/s_net_64
 
-This evaluation script saves the sampled point clouds, sample indices and reconstructed point clouds of the test set, and the reconstruction error per point cloud (Chamfer distance between the input and reconstruction). It also computes the normalized reconstruction error, as explained in the paper. The results are saved to the `train_folder`.
+This script operates similarly to the evaluation script for the Autoencoder with FPS sampled points.
 
 #### ProgressiveNet
 To train ProgressiveNet, using an existing Autoencoder model as the task network (provided in ae_folder flag), use:
 
-    python sampler/train_progressive_net.py --ae_folder log/autoencoder --train_folder log/progressive_net
+    python sampler/train_progressive_net.py --ae_folder log/autoencoder --n_sample_points 64 --train_folder log/progressive_net
 
 To evaluate reconstruction with ProgressiveNet's sampled points (with sample size 64 in this example), use:
 
     python sampler/evaluate_progressive_net.py --n_sample_points 64 --train_folder log/progressive_net
+
+This script operates similarly to the evaluation script for the Autoencoder with FPS sampled points.
 
 #### Visualization
 You can visualized point clouds (input, reconstructed, or sampled) by adding the flag `--visualize_results` to the evaluation script of the Autoencoder, S-NET or ProgressiveNet.
