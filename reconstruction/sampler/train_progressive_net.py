@@ -17,10 +17,9 @@ if parent_dir not in sys.path:
 # import modules
 from reconstruction.src.samplers import sampler_with_convs_and_symmetry_and_fc
 from reconstruction.src.autoencoder import Configuration as Conf
-from reconstruction.src.sample_net_progressive_point_net_ae import SampleNetProgressivePointNetAutoEncoder
+from reconstruction.src.progressive_net_point_net_ae import ProgressiveNetPointNetAutoEncoder
 
-from reconstruction.src.in_out import snc_category_to_synth_id, create_dir, PointCloudDataSet, \
-                                        load_and_split_all_point_clouds_under_folder
+from reconstruction.src.in_out import snc_category_to_synth_id, create_dir, load_and_split_all_point_clouds_under_folder
 
 from reconstruction.src.tf_utils import reset_tf_graph
 
@@ -32,8 +31,8 @@ parser.add_argument('--learning_rate', type=float, default=0.0005, help='Learnin
 parser.add_argument('--restore_ae', type=bool, default=True, help='Restore a trained autoencoder model [default: True]')
 parser.add_argument('--fixed_ae', type=bool, default=True, help='Fixed autoencoder model [default: True]')
 parser.add_argument('--object_class', type=str, default='multi', help='Single class name (for example: chair) or multi [default: multi]')
-parser.add_argument('--ae_folder', type=str, default='autoencoder', help='Folder for loading a trained autoencoder model [default: autoencoder]')
-parser.add_argument('--train_folder', type=str, default='progressive_net', help='Folder for saving data form the training [default: progressive_net]')
+parser.add_argument('--ae_folder', type=str, default='log/autoencoder', help='Folder for loading a trained autoencoder model [default: log/autoencoder]')
+parser.add_argument('--train_folder', type=str, default='log/progressive_net', help='Folder for saving data form the training [default: log/progressive_net]')
 flags = parser.parse_args()
 
 print('Train flags:', flags)
@@ -94,7 +93,7 @@ conf.save(osp.join(train_dir, 'configuration'))
 
 # Build Sampler and AE Model
 reset_tf_graph()
-ae = SampleNetProgressivePointNetAutoEncoder(conf.experiment_name, conf)
+ae = ProgressiveNetPointNetAutoEncoder(conf.experiment_name, conf)
 
 # Train the sampler (save output to train_stats.txt)
 buf_size = 1  # Make 'training_stats' file to flush each output line regarding training.

@@ -17,10 +17,9 @@ if parent_dir not in sys.path:
 
 # import modules
 from reconstruction.src.autoencoder import Configuration as Conf
-from reconstruction.src.sample_net_progressive_point_net_ae import SampleNetProgressivePointNetAutoEncoder
+from reconstruction.src.progressive_net_point_net_ae import ProgressiveNetPointNetAutoEncoder
 
-from reconstruction.src.in_out import snc_category_to_synth_id, create_dir, PointCloudDataSet, \
-                                        load_and_split_all_point_clouds_under_folder
+from reconstruction.src.in_out import snc_category_to_synth_id, create_dir, load_and_split_all_point_clouds_under_folder
 
 from reconstruction.src.tf_utils import reset_tf_graph
 from reconstruction.src.general_utils import plot_3d_point_cloud
@@ -30,7 +29,8 @@ from reconstruction.src.general_utils import plot_3d_point_cloud
 parser = argparse.ArgumentParser()
 parser.add_argument('--n_sample_points', type=int, default=64, help='Number of sample points (for evluation) [default: 64]')
 parser.add_argument('--object_class', type=str, default='multi', help='Single class name (for example: chair) or multi [default: multi]')
-parser.add_argument('--train_folder', type=str, default='progressive_net', help='Folder for loading data form the training [default: progressive_net]')
+parser.add_argument('--train_folder', type=str, default='log/progressive_net', help='Folder for loading data form the training [default: log/progressive_net]')
+parser.add_argument('--visualize_results', action='store_true', help='Visualize results [default: False]')
 flags = parser.parse_args()
 
 print('Evaluate flags:', flags)
@@ -38,7 +38,7 @@ print('Evaluate flags:', flags)
 # Define basic parameters
 project_dir = osp.dirname(osp.dirname(osp.abspath(__file__)))
 top_in_dir = osp.join(project_dir, 'data', 'shape_net_core_uniform_samples_2048')  # Top-dir of where point-clouds are stored.
-top_out_dir = osp.join(project_dir, 'results')                                     # Use to save Neural-Net check-points etc.
+top_out_dir = project_dir                                                          # Use to save Neural-Net check-points etc.
 
 if flags.object_class == 'multi':
     class_name = ['chair', 'table', 'car', 'airplane']
@@ -68,33 +68,80 @@ conf.n_samp = [flags.n_sample_points, 3]
 
 # Reload a saved model
 reset_tf_graph()
-ae = SampleNetProgressivePointNetAutoEncoder(conf.experiment_name, conf)
+ae = ProgressiveNetPointNetAutoEncoder(conf.experiment_name, conf)
 ae.restore_model(train_dir, epoch=restore_epoch, verbose=True)
 
-# Input point clouds
-complete_pc, _, _ = pc_data_test.next_batch(10)
-
-# Sample points
+n_input_points = conf.n_input[0]
 n_sample_points = conf.n_samp[0]
-ordered_pc = ae.sample(complete_pc)[1]  # complete pc ordered by ProgressiveNet
-sampled_pc = ordered_pc[:, :n_sample_points, :]  # sample form ProgressiveNet points
 
-sorted_pc = ae.sess.run(ae.x_sorted, feed_dict={ae.x: complete_pc})  # complete pc sorted by FPS
-fps_pc = sorted_pc[:, :n_sample_points, :]  # FPS points
+# create evaluation dir
+eval_dir = create_dir(osp.join(train_dir, "eval"))
 
-# Reconstruct
-reconstructed_from_sampled = ae.reconstruct(complete_pc, S=ordered_pc)[0]
-reconstructed_from_fps = ae.reconstruct(complete_pc, S=sorted_pc)[0]
+# sample point clouds (if not exist)
+file_name = "_".join(["sampled_pc", "test_set", flags.object_class, "%04d" % n_input_points]) + ".npy"
+file_path = osp.join(eval_dir, file_name)
+if not osp.exists(file_path):
+    # sample point clouds
+    _, sampled_pc, sample_idx, _ = ae.get_samples(pc_data_test.point_clouds)  # Complete point cloud, ordered by ProgressiveNet
 
-# Use any plotting mechanism, such as matplotlib, to visualize the results
-i = 0
-plot_3d_point_cloud(complete_pc[i][:, 0], complete_pc[i][:, 1], complete_pc[i][:, 2],
-                    in_u_sphere=True, title='Complete input point cloud')
-plot_3d_point_cloud(sampled_pc[i][:, 0], sampled_pc[i][:, 1], sampled_pc[i][:, 2],
-                    in_u_sphere=True, title='ProgressiveNet sampled points')
-plot_3d_point_cloud(fps_pc[i][:, 0], fps_pc[i][:, 1], fps_pc[i][:, 2],
-                    in_u_sphere=True, title='FPS sampled points')
-plot_3d_point_cloud(reconstructed_from_sampled[i][:, 0], reconstructed_from_sampled[i][:, 1], reconstructed_from_sampled[i][:, 2],
-                    in_u_sphere=True, title='Reconstruction from ProgressiveNet sampled points')
-plot_3d_point_cloud(reconstructed_from_fps[i][:, 0], reconstructed_from_fps[i][:, 1], reconstructed_from_fps[i][:, 2],
-                    in_u_sphere=True, title='Reconstruction from FPS sampled points')
+    # save sampled point clouds
+    np.save(file_path, sampled_pc)
+
+    # save sample index
+    file_name = "_".join(["sample_idx", "test_set", flags.object_class, "%04d" % n_input_points]) + ".npy"
+    file_path = osp.join(eval_dir, file_name)
+    np.save(file_path, sample_idx)
+else:
+    # load sampled point clouds
+    sampled_pc = np.load(file_path)
+
+# reconstruct point clouds from sampled point clouds
+reconstructions = ae.get_reconstructions_from_sampled(sampled_pc)
+
+# save reconstructions
+file_name = "_".join(["reconstructions", "test_set", flags.object_class, "%04d" % n_sample_points]) + ".npy"
+file_path = osp.join(eval_dir, file_name)
+np.save(file_path, reconstructions)
+
+# compute loss per sampled point cloud
+ae_loss_per_pc = ae.get_loss_ae_per_pc(pc_data_test.point_clouds, sampled_pc)
+
+# save loss per pc
+file_name = "_".join(["ae_loss", "test_set", flags.object_class, "%04d" % n_sample_points]) + ".npy"
+file_path = osp.join(eval_dir, file_name)
+np.save(file_path, ae_loss_per_pc)
+
+# save log file
+log_file_name = "_".join(["eval_stats", "test_set", flags.object_class, "%04d" % n_sample_points]) + ".txt"
+log_file = open(osp.join(eval_dir, log_file_name), "w", 1)
+log_file.write("Evaluation flags: %s\n" % flags)
+log_file.write("Mean ae loss: %.9f\n" % ae_loss_per_pc.mean())
+
+# compute normalized reconstruction error
+file_name_ref = "_".join(["ae_loss", "test_set", flags.object_class]) + ".npy"
+file_path_ref = osp.join(conf.ae_dir, "eval", file_name_ref)
+if osp.exists(file_path_ref):
+    ae_loss_per_pc_ref = np.load(file_path_ref)
+
+    nre_per_pc = np.divide(ae_loss_per_pc, ae_loss_per_pc_ref)
+    log_file.write("Normalized reconstruction error: %.9f\n" % nre_per_pc.mean())
+log_file.close()
+
+# use any plotting mechanism, such as matplotlib, to visualize the results
+if flags.visualize_results:
+    i = 0
+    plot_3d_point_cloud(
+        pc_data_test.point_clouds[i][:, 0], pc_data_test.point_clouds[i][:, 1], pc_data_test.point_clouds[i][:, 2],
+        in_u_sphere=True,
+        title="Complete input point cloud",
+    )
+    plot_3d_point_cloud(
+        sampled_pc[i][:n_sample_points, 0], sampled_pc[i][:n_sample_points, 1], sampled_pc[i][:n_sample_points, 2],
+        in_u_sphere=True,
+        title="ProgressiveNet sampled points"
+    )
+    plot_3d_point_cloud(
+        reconstructions[i][:, 0], reconstructions[i][:, 1], reconstructions[i][:, 2],
+        in_u_sphere=True,
+        title="Reconstruction from ProgressiveNet points",
+    )
