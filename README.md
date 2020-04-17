@@ -28,3 +28,7 @@ Please see `classification/README.md` and `reconstruction/README.md`.
 
 ## License
 This project is licensed under the terms of the MIT license (see `LICENSE` for details).
+
+## Selected projects that use "Learning to Sample"
+* <a href="https://arxiv.org/abs/1912.03663" target="_blank">SampleNet: Differentiable Point Cloud Sampling</a> by Lang et al. (Accepted to CVPR 2020). This work extends "Learning to Sample" and proposes a novel differentiable relaxation for point cloud sampling.
+* <a href="https://www.semanticscholar.org/paper/Multi-Stage-Point-Completion-Network-with-Critical-Zhang-Long/eee0f1cba1dd44b01bb370806359cd64a5a7b50d" target="_blank">Multi-Stage Point Completion Network with Critical Set Supervision</a> by Zhang et al. (submitted to CAGD; Special Issue of GMP 2020). This work evaluates our learned sampling as a supervision signal for point cloud completion network.
