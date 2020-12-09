@@ -14,12 +14,12 @@ We show that it is better to learn how to sample. To do that, we propose a deep 
 ## Citation
 If you find our work useful in your research, please consider citing:
 
-	@article{dovrat2018learning_to_sample,
-	  title={Learning to Sample},
-	  author={Dovrat, Oren and Lang, Itai and Avidan, Shai},
-	  journal={Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
+	@InProceedings{dovrat2018learning_to_sample,
+	  author = {Dovrat, Oren and Lang, Itai and Avidan, Shai},
+	  title = {{Learning to Sample}},
+	  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
 	  pages = {2760--2769},
-	  year={2019}
+	  year = {2019}
 	}
 
 ## Installation and usage
