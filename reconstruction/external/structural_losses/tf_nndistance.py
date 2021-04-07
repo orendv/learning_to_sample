@@ -40,7 +40,7 @@ if __name__=='__main__':
 	import numpy as np
 	import random
 	import time
-	from tensorflow.python.kernel_tests.gradient_checker import compute_gradient
+	#from tensorflow.python.kernel_tests.gradient_checker import compute_gradient
 	random.seed(100)
 	np.random.seed(100)
 	with tf.Session('') as sess:
