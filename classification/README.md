@@ -8,7 +8,7 @@ sudo apt-get install libhdf5-dev
 sudo pip install h5py
 ```
 
-Automatic dataset download requiare wget. 
+Automatic dataset download requires wget. 
 To install wget:
 ```bash
 sudo apt-get update
