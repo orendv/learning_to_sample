@@ -1,7 +1,8 @@
 # Learning to Sample
-Created by Oren Dovrat, Itai Lang and Shai Avidan from Tel-Aviv University.
+Created by [Oren Dovrat*](https://www.linkedin.com/in/dovrat/), [Itai Lang*](https://itailang.github.io/), and [Shai Avidan](http://www.eng.tau.ac.il/~avidan/) from Tel-Aviv University. <br>
+*Equal contribution
 
-![teaser](https://github.com/orendv/learning_to_sample/blob/master/doc/teaser2.png)
+![teaser](./doc/teaser.png)
 
 ## Introduction
 We propose a learned sampling approach for point clouds. Please see our [arXiv tech report](https://arxiv.org/abs/1812.01659) (or the [official CVPR 2019 version](https://openaccess.thecvf.com/content_CVPR_2019/html/Dovrat_Learning_to_Sample_CVPR_2019_paper.html)).
@@ -9,7 +10,7 @@ We propose a learned sampling approach for point clouds. Please see our [arXiv t
 Processing large point clouds is a challenging task. Therefore, the data is often sampled to a size that can be processed more easily. The question is how to sample the data? A popular sampling technique is Farthest Point Sampling (FPS). However, FPS is agnostic to a downstream application (classification, retrieval, etc.). The underlying assumption seems to be that minimizing the farthest point distance, as done by FPS, is a good proxy to other objective functions. 
 We show that it is better to learn how to sample. To do that, we propose a deep network to simplify 3D point clouds. The network, termed S-NET, takes a point cloud and produces a smaller point cloud that is optimized for a particular task. The simplified point cloud is not guaranteed to be a subset of the original point cloud. Therefore, we match it to a subset of the original points in a post-processing step. We contrast our approach with FPS by experimenting on two standard data sets and show significantly better results for a variety of applications.
 
-![poster](https://github.com/orendv/learning_to_sample/blob/master/doc/Learning_to_Sample_poster.PNG)
+![poster](./doc/poster.png)
 
 ## Citation
 If you find our work useful in your research, please consider citing:
